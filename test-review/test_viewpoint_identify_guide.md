@@ -1,4 +1,4 @@
-# test_viewpoint_identify_guide.md — テスト観点抽出プロンプトガイド（LLM用）
+# test_viewpoint_identify_guide.md — テスト観点抽出プロンプトガイド
 
 この文書は、LLM に対して「利用手順書/仕様書/要件定義書（以下、元ドキュメント）」を読み取り、**テスト観点**を体系的に抽出させるためのプロンプト指示テンプレートである。出力は `Markdown` 固定。抽出結果は後続の `test_review_guide.md` でテストケース（CSV）と照合される。
 
