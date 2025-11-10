@@ -2,6 +2,11 @@
 
 この文書は、LLM に対して「利用手順書/仕様書/要件定義書（以下、元ドキュメント）」を読み取り、**テスト観点**を体系的に抽出させるためのプロンプト指示テンプレートである。出力は `Markdown` 固定。抽出結果は後続の `test_review_guide.md` でテストケース（CSV）と照合される。
 
+## 関連ドキュメント
+
+* **`rules.md`**: 全体のルール、採点基準、スコア算出方法を定義（本ガイドのリスク評価ルーブリックは独自定義）
+* **`test_review_guide.md`**: 本ガイドで抽出した観点を使用してテストケースをレビューする手順
+
 ---
 
 ## 1. ゴールと出力定義
@@ -24,7 +29,7 @@
 
 ## 3. 抽出ポリシー
 
-* **分類必須**: `TestType` を `Normal | Quasi | Abnormal | NonFunctional` のいずれかで付与。
+* **分類必須**: `TestCaseType` を `Normal | Quasi | Abnormal | NonFunctional` のいずれかで付与。
 
   * Normal: 主要フローで想定成功。
   * Quasi: 想定内エラー/回復可能な分岐（境界・入力揺れ・軽微な障害）。
@@ -52,7 +57,7 @@
 
 1. **スコープ確定**: ドキュメントの目的/対象/非対象/前提/用語を要約。曖昧は `Assumptions` に列挙。
 2. **機能分解**: ユースケース/業務フロー/API/画面単位に分解し、**CRUD×境界**×権限×状態遷移を軸に観点候補を列挙。
-3. **分類付与**: 候補に `TestType` を割当（Normal/Quasi/Abnormal/NonFunctional）。
+3. **分類付与**: 候補に `TestCaseType` を割当（Normal/Quasi/Abnormal/NonFunctional）。
 4. **観測点の明文化**: 各観点に**観測可能性**（UI/ログ/DB/API/メトリクス）を `Observability` に記述。
 5. **データ前提の抽出**: 権限/日時/通貨/在庫/締日/桁数/エンコード等の**テストデータ条件**を `DataNeeds` に明記。
 6. **リスク採点**: §4で `RiskScore` を算出し、`RiskRank` を自動付与。
@@ -73,7 +78,7 @@
 - 盲点/留意: <簡潔に>
 
 ## 観点リスト
-| ViewpointID | Title | TestType | Description | SourceRef | RiskScore | RiskRank | RiskDetail | Preconditions | DataNeeds | Observability | Tags | Duplicates | Assumptions |
+| ViewpointID | Title | TestCaseType | Description | SourceRef | RiskScore | RiskRank | RiskDetail | Preconditions | DataNeeds | Observability | Tags | Duplicates | Assumptions |
 |---|---|---|---|---|---:|---|---|---|---|---|---|---|---|
 | VP-001 | <短い名称> | Normal | <何を検証するかを一文で> | <章/節/表/図/API/行> | 80 | High | <理由> | <前提> | <データ条件> | <UI/ログ/DB/API> | <任意> | <関連ID> | <仮定> |
 | VP-002 | ... | ... | ... | ... | ... | ... | ... | ... | ... | ... | ... | ... | ... |
@@ -108,7 +113,7 @@
 
 **出力（抜粋）**
 
-| ViewpointID | Title   | TestType      | Description                 | SourceRef | RiskScore | RiskRank | RiskDetail    | Preconditions | DataNeeds          | Observability        | Tags       | Duplicates | Assumptions |
+| ViewpointID | Title   | TestCaseType      | Description                 | SourceRef | RiskScore | RiskRank | RiskDetail    | Preconditions | DataNeeds          | Observability        | Tags       | Duplicates | Assumptions |
 | ----------- | ------- | ------------- | --------------------------- | --------- | --------: | -------- | ------------- | ------------- | ------------------ | -------------------- | ---------- | ---------- | ----------- |
 | VP-LOGIN-01 | 正常ログイン  | Normal        | 有効資格情報でセッション発行しダッシュボードに遷移する | §2.1, 図1  |        72 | Medium   | 利用頻度高、回帰リスク   | ユーザ有効         | 既存ユーザ: active=true | UI遷移/Set-Cookie/監査ログ | auth       |            |             |
 | VP-LOGIN-02 | 入力境界    | Quasi         | メール/パスワードの桁数・形式の境界で妥当性検証する  | §2.2, 表A  |        64 | Medium   | 入力不備は多発       | 未ログイン         | 最短/最長/空/全角混在       | UIバリデーション/ログ         | validation |            |             |
@@ -125,7 +130,7 @@
 
 **出力（抜粋）**
 
-| ViewpointID | Title   | TestType      | Description              | SourceRef | RiskScore | RiskRank | RiskDetail  | Preconditions | DataNeeds | Observability | Tags     | Duplicates | Assumptions |
+| ViewpointID | Title   | TestCaseType      | Description              | SourceRef | RiskScore | RiskRank | RiskDetail  | Preconditions | DataNeeds | Observability | Tags     | Duplicates | Assumptions |
 | ----------- | ------- | ------------- | ------------------------ | --------- | --------: | -------- | ----------- | ------------- | --------- | ------------- | -------- | ---------- | ----------- |
 | VP-ORD-01   | 承認後のみ引当 | Quasi         | ステータス=承認後にのみ在庫引当が可能      | §3.2      |        76 | High     | 誤引当で二重出荷リスク | 受注=承認         | SKU, qty  | DB状態/業務ログ     | workflow |            |             |
 | VP-ORD-02   | 在庫不足のBO | Abnormal      | 在庫不足時はバックオーダに遷移し通知される    | §3.3      |        90 | High     | 欠品は顧客影響大    | 受注=承認         | 在庫<需要     | 状態遷移/通知ログ     | stock    |            |             |
@@ -147,7 +152,7 @@
 - チームの重点観点（任意）: <例: 境界値・権限・監査>
 
 【要件】
-1) 各観点に TestType を `Normal | Quasi | Abnormal | NonFunctional` で必ず付与。
+1) 各観点に TestCaseType を `Normal | Quasi | Abnormal | NonFunctional` で必ず付与。
 2) 各観点に SourceRef（節/表/図/API/行）を必ず付与。無い場合は「提案」と明示。
 3) Observability（UI/ログ/DB/API/メトリクス）と DataNeeds（権限/日時/桁数等）を記述。
 4) §4の式で RiskScore(0–100) を算出し、RiskRank を High/Medium/Low のいずれかで付与。
@@ -165,7 +170,7 @@
 
 ## 10. 品質チェックリスト（自己検査）
 
-* [ ] すべての観点に `TestType` と `SourceRef` が付与されている。
+* [ ] すべての観点に `TestCaseType` と `SourceRef` が付与されている。
 * [ ] Normal/Quasi/Abnormal/NonFunctional の**比率が偏りすぎていない**。
 * [ ] 高リスク領域に観測点が定義されている（UI/ログ/DB/API）。
 * [ ] 権限/境界/状態遷移/外部連携/締処理/監査の観点が存在。
@@ -177,4 +182,5 @@
 ## 11. ノート
 
 * 本ガイドは `rules.md` と併用し、抽出結果は `test_review_guide.md` の観点↔ケース照合に直結する。
+* リスク評価のルーブリック（§4）は本ガイドで定義。スコアリング基準や総合評価ランクは `rules.md` §3, §4 を参照。
 * 数式/尺度はチームで調整可。変更時は版数を更新し、偏りのトレンドをレビュー会で共有する。
