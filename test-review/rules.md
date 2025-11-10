@@ -33,7 +33,7 @@
 
 * 入力:
   1. 元ドキュメント（複数可、版数/日付つき）
-  2. テストケース CSV（列名例: `ID, Title, State, Repro Steps, Test Type, Cause Div, Priority, Reported by, Resolution Div` など）
+  2. テストケース CSV（列名例: `ID, Features, Title, Preconditions, Steps, Expected Results, Notes, Test Type` など）
   3. ユーザーからの**重点レビュー観点**（任意。例: 「異常系の網羅と再利用性を重視」）
 * 前処理（LLM側の自己チェック）:
   * 版数や適用スコープの不一致がないか確認。
